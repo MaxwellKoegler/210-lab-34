@@ -156,6 +156,48 @@ public:
         }
         cout << endl;
     }
+
+    // Prim's algorithm: cheapest set of track segments that links every station
+    void minimumSpanningTree(int start) {
+        vector<bool> inTree(SIZE, false);
+        vector<int> parent(SIZE, -1);
+        vector<int> cost(SIZE, INT_MAX);
+        // min-heap of (segment travel time, station)
+        priority_queue<Pair, vector<Pair>, greater<Pair>> pq;
+        cost[start] = 0;
+        pq.push(make_pair(0, start));
+
+        cout << "Minimum Spanning Tree (Prim) from " << label(start) << ":" << endl;
+        cout << "Purpose: Fewest total track minutes needed to keep every station linked" << endl;
+        cout << "========================================================================" << endl;
+
+        int total = 0;
+        while (!pq.empty()) {
+            int current = pq.top().second;
+            pq.pop();
+            if (inTree[current]) {
+                continue;
+            }
+            inTree[current] = true;
+
+            if (parent[current] != -1) {
+                cout << "Edge from " << current << " to " << parent[current]
+                     << " with travel time: " << cost[current] << " min"
+                     << "  (" << STATIONS[current] << " - " << STATIONS[parent[current]] << ")" << endl;
+                total += cost[current];
+            }
+
+            for (Pair neighbor : adjList[current]) {
+                if (!inTree[neighbor.first] && neighbor.second < cost[neighbor.first]) {
+                    cost[neighbor.first] = neighbor.second;
+                    parent[neighbor.first] = current;
+                    pq.push(make_pair(neighbor.second, neighbor.first));
+                }
+            }
+        }
+        cout << "Total track time in tree: " << total << " min" << endl;
+        cout << endl;
+    }
 };
 
 int main() {
@@ -172,6 +214,7 @@ int main() {
     graph.dfs(0);
     graph.bfs(0);
     graph.shortestPaths(0);
+    graph.minimumSpanningTree(0);
 
     return 0;
 }
