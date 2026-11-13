@@ -1,5 +1,7 @@
 #include <iostream>
 #include <vector>
+#include <stack>
+#include <queue>
 using namespace std;
 
 const int SIZE = 7;
@@ -38,10 +40,55 @@ public:
         cout << "Graph's adjacency list:" << endl;
         for (int i = 0; i < adjList.size(); i++) {
             cout << i << " --> ";
-            for (Pair v : adjList[i])
+            for (Pair v : adjList[i]) {
                 cout << "(" << v.first << ", " << v.second << ") ";
+            }
             cout << endl;
         }
+    }
+
+    // DFS using a stack
+    void dfs(int s) {
+        vector<bool> vis(SIZE, false);
+        stack<int> st;
+        st.push(s);
+        cout << "DFS starting from vertex " << s << ":" << endl;
+        while (!st.empty()) {
+            int u = st.top();
+            st.pop();
+            if (vis[u]) {
+                continue;
+            }
+            vis[u] = true;
+            cout << u << " ";
+            for (Pair v : adjList[u]) {
+                if (!vis[v.first]) {
+                    st.push(v.first);
+                }
+            }
+        }
+        cout << endl;
+    }
+
+    // BFS using a queue
+    void bfs(int s) {
+        vector<bool> vis(SIZE, false);
+        queue<int> q;
+        vis[s] = true;
+        q.push(s);
+        cout << "BFS starting from vertex " << s << ":" << endl;
+        while (!q.empty()) {
+            int u = q.front();
+            q.pop();
+            cout << u << " ";
+            for (Pair v : adjList[u]) {
+                if (!vis[v.first]) {
+                    vis[v.first] = true;
+                    q.push(v.first);
+                }
+            }
+        }
+        cout << endl;
     }
 };
 
@@ -57,6 +104,10 @@ int main() {
 
     // Prints adjacency list representation of graph
     graph.printGraph();
+
+    // Runs DFS and BFS from vertex 0
+    graph.dfs(0);
+    graph.bfs(0);
 
     return 0;
 }
