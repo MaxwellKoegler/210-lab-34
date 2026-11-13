@@ -1,3 +1,4 @@
+//Maxwell Koegler | Assisted by Claude per assignment instructions | COMSC210 lab 34 | 11/12/2026
 #include <iostream>
 #include <vector>
 #include <stack>
