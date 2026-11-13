@@ -3,6 +3,7 @@
 #include <stack>
 #include <queue>
 #include <string>
+#include <climits>
 using namespace std;
 
 const int SIZE = 11;
@@ -120,6 +121,41 @@ public:
         }
         cout << endl;
     }
+
+    // Dijkstra's algorithm: fastest travel time from start to every station
+    void shortestPaths(int start) {
+        vector<int> dist(SIZE, INT_MAX);
+        // min-heap of (travel time so far, station)
+        priority_queue<Pair, vector<Pair>, greater<Pair>> pq;
+        dist[start] = 0;
+        pq.push(make_pair(0, start));
+
+        while (!pq.empty()) {
+            int time = pq.top().first;
+            int current = pq.top().second;
+            pq.pop();
+            if (time > dist[current]) {
+                continue;
+            }
+
+            for (Pair neighbor : adjList[current]) {
+                int newTime = time + neighbor.second;
+                if (newTime < dist[neighbor.first]) {
+                    dist[neighbor.first] = newTime;
+                    pq.push(make_pair(newTime, neighbor.first));
+                }
+            }
+        }
+
+        cout << "Fastest Travel Times (Dijkstra) from " << label(start) << ":" << endl;
+        cout << "Purpose: Finding the quickest trip to every station" << endl;
+        cout << "===================================================" << endl;
+        for (int station = 0; station < SIZE; station++) {
+            cout << start << " -> " << station << " : " << dist[station] << " min"
+                 << "  (" << STATIONS[station] << ")" << endl;
+        }
+        cout << endl;
+    }
 };
 
 int main() {
@@ -135,6 +171,7 @@ int main() {
     graph.printGraph();
     graph.dfs(0);
     graph.bfs(0);
+    graph.shortestPaths(0);
 
     return 0;
 }
