@@ -2,6 +2,7 @@
 #include <vector>
 #include <stack>
 #include <queue>
+#include <string>
 using namespace std;
 
 const int SIZE = 11;
@@ -10,81 +11,110 @@ struct Edge {
     int src, dest, weight;
 };
 
-typedef pair<int, int> Pair;  // Creates alias 'Pair' for the pair<int,int> data type
+typedef pair<int, int> Pair;  // (neighbor station, travel time in minutes)
+
+// Station names, indexed by vertex number
+const string STATIONS[SIZE] = {
+    "Central Station",
+    "Riverside",
+    "Oak Park",
+    "Harbor View",
+    "University",
+    "Market Square",
+    "Airport",
+    "Hillcrest",
+    "Stadium",
+    "Lakeside",
+    "Industrial Park"
+};
 
 class Graph {
 public:
-    // a vector of vectors of Pairs to represent an adjacency list
+    // adjacency list: each station holds its (neighbor, minutes) pairs
     vector<vector<Pair>> adjList;
 
     // Graph Constructor
     Graph(vector<Edge> const &edges) {
-        // resize the vector to hold SIZE elements of type vector<Edge>
         adjList.resize(SIZE);
 
-        // add edges to the directed graph
-        for (auto &edge: edges) {
-            int src = edge.src;
-            int dest = edge.dest;
-            int weight = edge.weight;
-
-            // insert at the end
-            adjList[src].push_back(make_pair(dest, weight));
-            // for an undirected graph, add an edge from dest to src also
-            adjList[dest].push_back(make_pair(src, weight));
+        // add each track segment in both directions (undirected graph)
+        for (auto &edge : edges) {
+            adjList[edge.src].push_back(make_pair(edge.dest, edge.weight));
+            adjList[edge.dest].push_back(make_pair(edge.src, edge.weight));
         }
     }
 
-    // Print the graph's adjacency list
+    // Returns a label like "Station 0 (Central Station)"
+    string label(int station) {
+        return "Station " + to_string(station) + " (" + STATIONS[station] + ")";
+    }
+
+    // Print the transit network
     void printGraph() {
-        cout << "Graph's adjacency list:" << endl;
-        for (int i = 0; i < adjList.size(); i++) {
-            cout << i << " --> ";
-            for (Pair v : adjList[i]) {
-                cout << "(" << v.first << ", " << v.second << ") ";
+        cout << "City Rail Transit Network:" << endl;
+        cout << "==========================" << endl;
+        for (int station = 0; station < SIZE; station++) {
+            cout << label(station) << " connects to:" << endl;
+            for (Pair neighbor : adjList[station]) {
+                cout << "  -> " << label(neighbor.first)
+                     << " - Travel time: " << neighbor.second << " min" << endl;
             }
-            cout << endl;
         }
+        cout << endl;
     }
 
-    // DFS using a stack
-    void dfs(int s) {
-        vector<bool> vis(SIZE, false);
-        stack<int> st;
-        st.push(s);
-        cout << "DFS starting from vertex " << s << ":" << endl;
-        while (!st.empty()) {
-            int u = st.top();
-            st.pop();
-            if (vis[u]) {
+    // DFS using a stack: traces how a delay could spread down the lines
+    void dfs(int start) {
+        vector<bool> visited(SIZE, false);
+        stack<int> toVisit;
+        toVisit.push(start);
+
+        cout << "Delay Propagation Trace (DFS) from " << label(start) << ":" << endl;
+        cout << "Purpose: Following how a service delay could ripple down each line" << endl;
+        cout << "=================================================================" << endl;
+
+        while (!toVisit.empty()) {
+            int current = toVisit.top();
+            toVisit.pop();
+            if (visited[current]) {
                 continue;
             }
-            vis[u] = true;
-            cout << u << " ";
-            for (Pair v : adjList[u]) {
-                if (!vis[v.first]) {
-                    st.push(v.first);
+            visited[current] = true;
+            cout << "Delay reaches " << label(current) << endl;
+
+            for (Pair neighbor : adjList[current]) {
+                if (!visited[neighbor.first]) {
+                    cout << "  -> Could spread to " << label(neighbor.first)
+                         << " - Travel time: " << neighbor.second << " min" << endl;
+                    toVisit.push(neighbor.first);
                 }
             }
         }
         cout << endl;
     }
 
-    // BFS using a queue
-    void bfs(int s) {
-        vector<bool> vis(SIZE, false);
-        queue<int> q;
-        vis[s] = true;
-        q.push(s);
-        cout << "BFS starting from vertex " << s << ":" << endl;
-        while (!q.empty()) {
-            int u = q.front();
-            q.pop();
-            cout << u << " ";
-            for (Pair v : adjList[u]) {
-                if (!vis[v.first]) {
-                    vis[v.first] = true;
-                    q.push(v.first);
+    // BFS using a queue: groups stations by number of stops from the start
+    void bfs(int start) {
+        vector<bool> visited(SIZE, false);
+        queue<int> toVisit;
+        visited[start] = true;
+        toVisit.push(start);
+
+        cout << "Stops-Away Coverage (BFS) from " << label(start) << ":" << endl;
+        cout << "Purpose: Finding which stations are 1, 2, 3... stops away" << endl;
+        cout << "==========================================================" << endl;
+
+        while (!toVisit.empty()) {
+            int current = toVisit.front();
+            toVisit.pop();
+            cout << "Checking " << label(current) << endl;
+
+            for (Pair neighbor : adjList[current]) {
+                if (!visited[neighbor.first]) {
+                    visited[neighbor.first] = true;
+                    cout << "  -> Next stop: " << label(neighbor.first)
+                         << " - Travel time: " << neighbor.second << " min" << endl;
+                    toVisit.push(neighbor.first);
                 }
             }
         }
@@ -93,20 +123,16 @@ public:
 };
 
 int main() {
-    // Creates a vector of graph edges/weights
+    // Track segments: {station A, station B, travel time in minutes}
     vector<Edge> edges = {
-        // (x, y, w) —> edge from x to y having weight w
-        {0,1,7},{0,2,15},{0,3,10},{1,4,3},{2,4,9},{2,5,11},{3,6,4},{4,7,13},
-        {5,7,6},{5,8,2},{6,8,14},{7,9,5},{8,10,8},{9,10,12},{6,10,16}
+        {0, 1, 7},  {0, 2, 15}, {0, 3, 10}, {1, 4, 3},  {2, 4, 9},
+        {2, 5, 11}, {3, 6, 4},  {4, 7, 13}, {5, 7, 6},  {5, 8, 2},
+        {6, 8, 14}, {7, 9, 5},  {8, 10, 8}, {9, 10, 12}, {6, 10, 16}
     };
 
-    // Creates graph
     Graph graph(edges);
 
-    // Prints adjacency list representation of graph
     graph.printGraph();
-
-    // Runs DFS and BFS from vertex 0
     graph.dfs(0);
     graph.bfs(0);
 
