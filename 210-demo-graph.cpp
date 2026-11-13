@@ -210,11 +210,42 @@ int main() {
 
     Graph graph(edges);
 
-    graph.printGraph();
-    graph.dfs(0);
-    graph.bfs(0);
-    graph.shortestPaths(0);
-    graph.minimumSpanningTree(0);
+    int choice = -1;
+    while (choice != 0) {
+        cout << "City Rail Transit Menu:" << endl;
+        cout << "[1] Display transit network" << endl;
+        cout << "[2] Check stops-away coverage (BFS)" << endl;
+        cout << "[3] Trace delay propagation (DFS)" << endl;
+        cout << "[4] Calculate fastest travel times" << endl;
+        cout << "[5] Find Minimum Spanning Tree" << endl;
+        cout << "[0] Exit" << endl;
+        cout << "Enter your choice: ";
+        cin >> choice;
+        cout << endl;
+
+        switch (choice) {
+            case 1:
+                graph.printGraph();
+                break;
+            case 2:
+                graph.bfs(0);
+                break;
+            case 3:
+                graph.dfs(0);
+                break;
+            case 4:
+                graph.shortestPaths(0);
+                break;
+            case 5:
+                graph.minimumSpanningTree(0);
+                break;
+            case 0:
+                cout << "Exiting." << endl;
+                break;
+            default:
+                cout << "Invalid choice." << endl << endl;
+        }
+    }
 
     return 0;
 }
